@@ -1,0 +1,46 @@
+version: "3"
+
+services:
+  app:
+    build:
+      context: ./
+    container_name: 'sendplexwebapp'
+    links:
+      - localdb:localdb
+    ports:
+      - "8780:80"
+    volumes:
+      - ./webapp:/var/www
+      - ./dockerconfig/custom.php.ini:/etc/php/7.2/apache2/php.ini
+      - ./dockerconfig/default.conf:/etc/apache2/sites-available/000-default.conf
+    networks:
+      - sendplex_overlay
+
+  localdb:
+    image:
+      mariadb
+    container_name: 'sendplexmariadb'
+    ports:
+      - "33870:3306"
+    networks:
+      - sendplex_overlay
+    volumes:
+      - ./dockerconfig/mysql:/var/lib/mysql
+      - ./dockerconfig/initdata:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_USER: testuser
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: secret
+
+  adminer:
+    image: adminer
+    ports:
+      - 8781:8080
+    networks:
+      - sendplex_overlay
+
+volumes:
+  sendplex_overlay:
+
+networks:
+  sendplex_overlay:
